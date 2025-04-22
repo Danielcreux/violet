@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat de Voz Infinito</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    #resultados {
+      width: 500px;
+      height: 500px;
+      margin: 30px auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #fff;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .yo, .tu {
+      display: inline-block;
+      max-width: 75%;
+      padding: 10px;
+      border-radius: 15px;
+      word-wrap: break-word;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .yo {
+      background-color: #d1e7ff; /* Azul claro */
+      text-align: right;
+      align-self: flex-end;
+    }
+    .tu {
+      background-color: #d4edda; /* Verde claro */
+      text-align: left;
+      align-self: flex-start;
+    }
+    input {
+      width: 380px;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      display: inline-block;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    input:focus {
+      outline: none;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.5);
+    }
+    button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .input-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="resultados"></div>
+  <div class="input-container">
+    <input type="text" id="input" placeholder="Introduce tu pregunta">
+    <button id="startBtn">🎤 Hablar</button>
+  </div>
+
+  <script>
+    // --- Text to Speech ---
+    const synth = window.speechSynthesis;
+    let vozEspanolFemenina = null;
+
+    function obtenerVozEspanolFemenina() {
+      const voces = synth.getVoices();
+      vozEspanolFemenina = voces.find(v => v.lang.startsWith('es') && v.name.toLowerCase().includes('female'));
+    }
+
+    if (synth.onvoiceschanged !== undefined) {
+      synth.onvoiceschanged = obtenerVozEspanolFemenina;
+    }
+
+    function hablar(texto) {
+      if (!vozEspanolFemenina) obtenerVozEspanolFemenina();
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.voice = vozEspanolFemenina;
+      utterance.lang = 'es-ES';
+      utterance.onend = () => {
+        if (bucleActivo) recognition.start(); // Reanudar el reconocimiento
+      };
+
+      // Log the audio output
+      utterance.onstart = () => {
+        console.log(`Speech started: "${texto}"`);
+      };
+
+      utterance.onend = () => {
+        console.log('Speech ended');
+      };
+
+      synth.speak(utterance);
+    }
+
+    // --- Speech to Text ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = 'es-ES';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    const input = document.getElementById('input');
+    let bucleActivo = false;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      input.value = transcript;
+      enviarPregunta(transcript);
+    };
+
+    recognition.onend = () => {
+      if (bucleActivo && !synth.speaking) recognition.start(); // Reanudar si no está hablando
+    };
+
+    // --- Enviar pregunta al chat ---
+    function enviarPregunta(pregunta) {
+      // Mostrar el mensaje del usuario en el chat
+      let mensaje = document.createElement("div");
+      mensaje.classList.add("yo");
+      mensaje.textContent = pregunta;
+      document.querySelector("#resultados").appendChild(mensaje);
+
+      // Hacer la petición al backend
+      fetch("openrouter.php?pregunta=" + encodeURI(pregunta))
+        .then(function(response) {
+          return response.text();
+        })
+        .then(function(datos) {
+          // Mostrar la respuesta en el chat
+          let mensajeRespuesta = document.createElement("div");
+          mensajeRespuesta.classList.add("tu");
+          mensajeRespuesta.textContent = datos;
+          document.querySelector("#resultados").appendChild(mensajeRespuesta);
+          hablar(datos);  // Hablar la respuesta
+        });
+    }
+
+    // --- Control de botones ---
+    document.getElementById('startBtn').onclick = () => {
+      obtenerVozEspanolFemenina();  // Asegurarse de que la voz esté cargada
+      bucleActivo = true;
+      recognition.start();  // Empezar a escuchar
+      document.getElementById('startBtn').textContent = '⏹️ Detener';
+    };
+
+    // Detener el micrófono cuando se haga clic en "Detener"
+    document.getElementById('startBtn').onclick = () => {
+      if (bucleActivo) {
+        bucleActivo = false;
+        recognition.stop();
+        synth.cancel();
+        document.getElementById('startBtn').textContent = '🎤 Hablar';
+      } else {
+        bucleActivo = true;
+        recognition.start();
+        document.getElementById('startBtn').textContent = '⏹️ Detener';
+      }
+    };
+  </script>
+
+</body>
+</html>
+

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        #resultados {
+            width: 500px;
+            height: 400px;
+            margin: 30px auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .yo, .tu {
+            display: inline-block;
+            max-width: 75%;
+            padding: 10px;
+            border-radius: 15px;
+            word-wrap: break-word;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .yo {
+            background-color: #d1e7ff; /* Azul claro */
+            text-align: right;
+            align-self: flex-end;
+        }
+        .tu {
+            background-color: #d4edda; /* Verde claro */
+            text-align: left;
+            align-self: flex-start;
+        }
+        input {
+            width: 25%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            margin-left: 10px;
+            cursor: pointer;
+            display: inline-block;
+            border: none;
+            border-radius: 25px;
+            background-color: #007bff;
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.5);
+        }
+        #control-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="resultados"></div>
+    <div id="control-buttons">
+        <input type="text" placeholder="Introduce tu pregunta" id="input-text" />
+        <button id="start">🎤 Hablar</button>
+        <button id="stop" style="display:none;">⏹️ Detener</button>
+    </div>
+
+    <script>
+        // Función de Chat con OpenRouter API
+        document.querySelector("input").onkeyup = function(event) {
+            if (event.code == 'Enter') {
+                enviarMensaje(this.value);
+                this.value = "";
+            }
+        };
+
+        function enviarMensaje(contenido) {
+            // Mostrar el mensaje del usuario
+            let mensaje = document.createElement("div");
+            mensaje.classList.add("yo");
+            mensaje.textContent = contenido;
+            document.querySelector("#resultados").appendChild(mensaje);
+
+            // Obtener la respuesta del servidor
+            fetch("openrouter.php?pregunta=" + encodeURI(contenido))
+                .then(function(response) {
+                    return response.text();
+                })
+                .then(function(datos) {
+                    // Mostrar la respuesta del modelo
+                    let respuesta = document.createElement("div");
+                    respuesta.classList.add("tu");
+                    respuesta.textContent = datos;
+                    document.querySelector("#resultados").appendChild(respuesta);
+
+                    // Usar texto a voz para la respuesta
+                    const synth = window.speechSynthesis;
+                    const utterance = new SpeechSynthesisUtterance(datos);
+                    utterance.lang = 'es-ES';
+                    synth.cancel(); // cancela cualquier lectura previa
+                    synth.speak(utterance);
+                });
+        }
+
+        // Funcionalidad de Speech-to-Text (Voz a Texto)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES'; // Idioma
+        recognition.continuous = true; // Sigue escuchando
+        recognition.interimResults = true; // Resultados parciales
+
+        const startBtn = document.getElementById('start');
+        const stopBtn = document.getElementById('stop');
+        const inputText = document.getElementById('input-text');
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            // Muestra lo que se transcribió en el cuadro de entrada
+            inputText.value = transcript;
+        };
+
+        startBtn.onclick = () => {
+            recognition.start();
+            startBtn.style.display = "none";
+            stopBtn.style.display = "inline-block";
+        };
+
+        stopBtn.onclick = () => {
+            recognition.stop();
+            startBtn.style.display = "inline-block";
+            stopBtn.style.display = "none";
+
+            // Enviar el texto transcrito al chat
+            enviarMensaje(inputText.value);
+            inputText.value = ""; // Limpiar el campo después de enviarlo
+        };
+    </script>
+</body>
+</html>
+

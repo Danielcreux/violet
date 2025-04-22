@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Speech to Text</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    #texto { width: 100%; height: 150px; }
+    button { padding: 10px 20px; font-size: 1rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+
+  <h2>🎤 Transcripción de voz a texto</h2>
+  <textarea id="texto" placeholder="Aquí aparecerá lo que digas..."></textarea><br>
+  <button id="start">Iniciar reconocimiento</button>
+  <button id="stop">Detener reconocimiento</button>
+
+  <script>
+    // Compatibilidad
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = 'es-ES'; // Idioma
+    recognition.continuous = true; // Sigue escuchando
+    recognition.interimResults = true; // Resultados parciales
+
+    const texto = document.getElementById('texto');
+    const startBtn = document.getElementById('start');
+    const stopBtn = document.getElementById('stop');
+
+    // Evento de resultados
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      texto.value = transcript;
+    };
+
+    // Iniciar y detener
+    startBtn.onclick = () => recognition.start();
+    stopBtn.onclick = () => recognition.stop();
+  </script>
+
+</body>
+</html>
