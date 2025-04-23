@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar 3D Realista</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #e0f7fa, #80deea);
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            perspective: 1000px;
+        }
+        
+        .avatar-container {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            transform-style: preserve-3d;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateY(0deg); }
+            50% { transform: translateY(-20px) rotateY(5deg); }
+        }
+        
+        .cara {
+            width: 220px;
+            height: 260px;
+            background: linear-gradient(145deg, #ffeb3b, #ffc107);
+            border-radius: 50%;
+            position: absolute;
+            top: 70px;
+            left: 40px;
+            box-shadow: 
+                inset -10px -15px 30px rgba(0,0,0,0.2),
+                inset 10px 10px 30px rgba(255,255,255,0.3),
+                0 15px 30px rgba(0,0,0,0.3);
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+        }
+        
+        .ojos-container {
+            position: absolute;
+            top: 80px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            transform: translateZ(20px);
+        }
+        
+        .ojo {
+            width: 50px;
+            height: 30px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 0 10px rgba(0,0,0,0.2),
+                inset 0 -5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-style: preserve-3d;
+        }
+        
+        .ojo.cerrado {
+            height: 8px;
+            transform: translateY(15px);
+            background: #333;
+            box-shadow: none;
+        }
+        
+        .pupila {
+            width: 20px;
+            height: 20px;
+            background: #222;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            left: 15px;
+            transition: all 0.5s ease;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .reflejo {
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            filter: blur(1px);
+        }
+        
+        .boca-area {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%) translateZ(15px);
+            width: 120px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .boca {
+            width: 80px;
+            height: 30px;
+            background: linear-gradient(to bottom, #ff5252, #e53935);
+            border-radius: 0 0 40px 40px;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 -10px 20px rgba(0,0,0,0.2),
+                0 5px 10px rgba(0,0,0,0.1);
+        }
+        
+        .boca.sonriendo {
+            height: 40px;
+            border-radius: 0 0 50px 50px;
+            background: linear-gradient(to bottom, #4caf50, #2e7d32);
+        }
+        
+        .boca.abierta {
+            height: 50px;
+            border-radius: 20px;
+            background: linear-gradient(to bottom, #ff7043, #e64a19);
+        }
+        
+        .lengua {
+            width: 50px;
+            height: 30px;
+            background: linear-gradient(to bottom, #ff4081, #d81b60);
+            border-radius: 20px 20px 0 0;
+            position: absolute;
+            bottom: -15px;
+            left: 15px;
+            display: none;
+            animation: moverLengua 1.5s infinite alternate;
+        }
+        
+        .boca.abierta .lengua {
+            display: block;
+        }
+        
+        @keyframes moverLengua {
+            0% { transform: translateY(0) scaleY(1); }
+            100% { transform: translateY(-5px) scaleY(0.9); }
+        }
+        
+        .cejas {
+            position: absolute;
+            top: 60px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            transform: translateZ(25px);
+        }
+        
+        .ceja {
+            width: 60px;
+            height: 8px;
+            background: #795548;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .ceja.izquierda {
+            transform: rotate(-5deg);
+        }
+        
+        .ceja.derecha {
+            transform: rotate(5deg);
+        }
+        
+        .expresion-triste .ceja {
+            transform: translateY(5px) rotate(0deg);
+        }
+        
+        .expresion-sorpresa .ceja {
+            transform: translateY(-10px);
+        }
+        
+        .mejillas {
+            position: absolute;
+            top: 120px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            transform: translateZ(10px);
+        }
+        
+        .mejilla {
+            width: 40px;
+            height: 20px;
+            background: rgba(255,138,101,0.3);
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .expresion-feliz .mejilla {
+            opacity: 0.6;
+        }
+        
+        .sombras-3d {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 
+                -15px -15px 30px rgba(255,255,255,0.1),
+                15px 15px 30px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="avatar-container">
+        <div class="cara" id="cara">
+            <div class="sombras-3d"></div>
+            <div class="cejas">
+                <div class="ceja izquierda"></div>
+                <div class="ceja derecha"></div>
+            </div>
+            <div class="ojos-container">
+                <div class="ojo izquierdo">
+                    <div class="pupila">
+                        <div class="reflejo"></div>
+                    </div>
+                </div>
+                <div class="ojo derecho">
+                    <div class="pupila">
+                        <div class="reflejo"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mejillas">
+                <div class="mejilla izquierda"></div>
+                <div class="mejilla derecha"></div>
+            </div>
+            <div class="boca-area">
+                <div class="boca">
+                    <div class="lengua"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cara = document.getElementById('cara');
+        const ojos = document.querySelectorAll('.ojo');
+        const pupilas = document.querySelectorAll('.pupila');
+        const boca = document.querySelector('.boca');
+        const cejas = document.querySelectorAll('.ceja');
+        const mejillas = document.querySelectorAll('.mejilla');
+        
+        // Estados de expresión
+        const expresiones = [
+            { nombre: 'feliz', duracion: 3000, acciones: () => {
+                boca.classList.add('sonriendo');
+                cara.classList.add('expresion-feliz');
+                cara.classList.remove('expresion-triste', 'expresion-sorpresa');
+            }},
+            { nombre: 'neutral', duracion: 4000, acciones: () => {
+                boca.className = 'boca';
+                cara.className = 'cara';
+            }},
+            { nombre: 'sorpresa', duracion: 2000, acciones: () => {
+                boca.classList.add('abierta');
+                cara.classList.add('expresion-sorpresa');
+                cara.classList.remove('expresion-feliz', 'expresion-triste');
+            }},
+            { nombre: 'triste', duracion: 2500, acciones: () => {
+                boca.className = 'boca';
+                cara.classList.add('expresion-triste');
+                cara.classList.remove('expresion-feliz', 'expresion-sorpresa');
+            }}
+        ];
+        
+        let indiceExpresion = 0;
+        
+        function cambiarExpresion() {
+            const expresionActual = expresiones[indiceExpresion];
+            expresionActual.acciones();
+            
+            setTimeout(() => {
+                indiceExpresion = (indiceExpresion + 1) % expresiones.length;
+                cambiarExpresion();
+            }, expresionActual.duracion);
+        }
+        
+        function parpadear() {
+            ojos.forEach(ojo => ojo.classList.add('cerrado'));
+            
+            setTimeout(() => {
+                ojos.forEach(ojo => ojo.classList.remove('cerrado'));
+                
+                // Tiempo aleatorio para el próximo parpadeo (3-6 segundos)
+                const proximoParpadeo = Math.random() * 3000 + 3000;
+                setTimeout(parpadear, proximoParpadeo);
+            }, 200);
+        }
+        
+        function moverPupilas() {
+            pupilas.forEach(pupila => {
+                const posX = Math.random() * 15 - 7;
+                const posY = Math.random() * 8 - 4;
+                pupila.style.transform = `translate(${posX}px, ${posY}px)`;
+            });
+            
+            // Tiempo aleatorio para el próximo movimiento (2-4 segundos)
+            const proximoMovimiento = Math.random() * 2000 + 2000;
+            setTimeout(moverPupilas, proximoMovimiento);
+        }
+        
+        // Iniciar animaciones
+        window.onload = function() {
+            // Primer parpadeo rápido
+            setTimeout(parpadear, 1000);
+            
+            // Iniciar secuencia de expresiones
+            setTimeout(cambiarExpresion, 1500);
+            
+            // Iniciar movimiento de pupilas
+            setTimeout(moverPupilas, 2000);
+            
+            // Efecto 3D al mover el mouse
+            document.addEventListener('mousemove', (e) => {
+                const xAxis = (window.innerWidth / 2 - e.pageX) / 20;
+                const yAxis = (window.innerHeight / 2 - e.pageY) / 20;
+                cara.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+            
+            // Resetear posición cuando el mouse sale
+            document.addEventListener('mouseleave', () => {
+                cara.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            });
+        };
+    </script>
+</body>
+</html>

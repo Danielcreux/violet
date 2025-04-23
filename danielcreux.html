@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        #resultados {
+            width: 500px;
+            height: 500px;
+            margin: 30px auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .yo, .tu {
+            display: inline-block;
+            max-width: 75%;
+            padding: 10px;
+            border-radius: 15px;
+            word-wrap: break-word;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .yo {
+            background-color: #d1e7ff; /* Azul claro */
+            text-align: right;
+            align-self: flex-end;
+        }
+        .tu {
+            background-color: #d4edda; /* Verde claro */
+            text-align: left;
+            align-self: flex-start;
+        }
+        input {
+            width: 500px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.5);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="resultados"></div>
+    <input type="text" placeholder="Introduce tu pregunta" />
+
+    <script>
+        document.querySelector("input").onkeyup = function(event) {
+            if (event.code == 'Enter') {
+                let contenido = this.value;
+                this.value = "";
+                
+                // Mostrar el mensaje del usuario
+                let mensaje = document.createElement("div");
+                mensaje.classList.add("yo");
+                mensaje.textContent = contenido;
+                document.querySelector("#resultados").appendChild(mensaje);
+                
+                // Obtener la respuesta del servidor
+                fetch("openrouter.php?pregunta=" + encodeURI(contenido))
+                    .then(function(response) {
+                        return response.text();
+                    })
+                    .then(function(datos) {
+                        // Mostrar la respuesta del modelo
+                        let respuesta = document.createElement("div");
+                        respuesta.classList.add("tu");
+                        respuesta.textContent = datos;
+                        document.querySelector("#resultados").appendChild(respuesta);
+                    });
+            }
+        };
+    </script>
+</body>
+</html>
